@@ -16,8 +16,8 @@ class Regression:
     
     def __init__ (self, df):
         self.df = df 
-        self.X = None
-        self.y = None
+        self.X = self.df[['Avg. Session Length', 'Time on App','Time on Website', 'Length of Membership']]
+        self.y = self.df['Yearly Amount Spent']
         self.X_train = None
         self.X_test = None
         self.y_train = None
@@ -34,24 +34,23 @@ class Regression:
         return sns.pairplot(self.df)
     
     def splitData(self, testsize):
-        self.X = self.df[['Avg. Session Length', 'Time on App','Time on Website', 'Length of Membership']]
-        self.y = self.df['Yearly Amount Spent']
         self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.X, self.y, test_size = testsize, random_state = 100)
     
     def solve (self):
         self.regressor = LinearRegression()
         self.regressor.fit(self.X_train, self.y_train)
-    
-    def predict(self):
         self.y_preds = self.regressor.predict(self.X_test)
         plt.scatter(self.y_test, self.y_preds)
         plt.xlabel('y test')
         plt.ylabel('predictions')
         
     def measure(self):
-        print('MAE:', metrics.mean_absolute_error(self.y_test, self.y_preds))
-        print('MSE:', metrics.mean_squared_error(self.y_test, self.y_preds))
-        print('RMSE:', np.sqrt(metrics.mean_squared_error(self.y_test, self.y_preds)))
+        try:
+            print('MAE:', metrics.mean_absolute_error(self.y_test, self.y_preds))
+            print('MSE:', metrics.mean_squared_error(self.y_test, self.y_preds))
+            print('RMSE:', np.sqrt(metrics.mean_squared_error(self.y_test, self.y_preds)))
+        except ValueError as e:
+            print('You need to solve the model first - error: {}'.format(str(e)))
     
     def interprete(self):
         coef = pd.DataFrame(self.regressor.coef_, self.X.columns)
@@ -63,4 +62,4 @@ class Regression:
         return cls(df = pd.read_csv(data))
 
 r = Regression.getData('Ecommerce Customers')
-r.analyzeData()
+r.splitData(0.3)
